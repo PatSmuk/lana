@@ -34,11 +34,16 @@ client.on("newPeer", (peer: Peer) => {
     });
 });
 
+client.start();
+
 function handleCommand(...args: string[]) {
     if (args.length < 1) {
         return;
     }
     const command = args[0];
+    if (command === "") {
+        return;
+    }
     switch (command) {
         case "connect": {
             if (args.length < 3) {
