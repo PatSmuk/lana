@@ -95,12 +95,19 @@ export class Client extends EventEmitter {
 
         this.quietServer.on("connection", async (socket: net.Socket) => {
             const socketBuffer = createSocketBuffer(socket);
-            for (;;) {
-                const packet = await decodeQuietProtocolPacket(socketBuffer);
-                if (!packet) {
-                    break;
+            try {
+                for (;;) {
+                    const packet = await decodeQuietProtocolPacket(socketBuffer);
+                    if (!packet) {
+                        break;
+                    }
+                    this.handleQuietPacket(packet, socket);
                 }
-                this.handleQuietPacket(packet, socket);
+            }
+            catch (err) {
+                console.error(`Error while decoding/handling packet: ${err}`);
+                socket.destroy();
+                return;
             }
         });
         this.quietServer.on("error", (err) => {
@@ -184,6 +191,11 @@ export class Client extends EventEmitter {
 
     private findEntry(path: string): [FileOrDirectoryEntry, FileOrDirectoryEntry[], number] | null {
         let directoryContents = this.root;
+
+        if (path[path.length - 1] === "/") {
+            path = path.slice(0, path.length - 1);
+        }
+
         const virtualPathSteps = path.split("/");
         for (const step of virtualPathSteps.slice(1, -1)) {
             for (const entry of directoryContents) {
@@ -265,6 +277,11 @@ export class Client extends EventEmitter {
             }
             case QuietProtocolOpcode.QUERY: {
                 const { directoryPath, token } = packet as QuietQueryPacket;
+
+                if (directoryPath === "/") {
+                    sender.write(encodeQuietQueryResponsePacket(token, QuietProtocolResponseCode.OK, this.root));
+                    return;
+                }
 
                 const result = this.findEntry(directoryPath);
                 if (!result) {

@@ -27,7 +27,7 @@ export function encodeInitializeResponsePacket(responseCode: QuietProtocolRespon
 export function decodeInitializeResponsePacket(packet: Buffer): InitializeResponsePacket {
     assert(
         packet.length === 2,
-        "Expected payload length to be 2, got ${packet.length}"
+        `decodeInitializeResponsePacket: Expected payload length to be 2, got ${packet.length}`
     );
 
     let offset = 0;

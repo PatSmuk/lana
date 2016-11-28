@@ -52,12 +52,17 @@ export class Peer extends EventEmitter {
             this.socket.write(encodeInitializePacket());
 
             const socketBuffer = createSocketBuffer(this.socket);
-            for (;;) {
-                const packet = await decodeQuietProtocolPacket(socketBuffer);
-                if (!packet) {
-                    break;
+            try {
+                for (;;) {
+                    const packet = await decodeQuietProtocolPacket(socketBuffer);
+                    if (!packet) {
+                        break;
+                    }
+                    this.handleQuietProtocolPacket(packet);
                 }
-                this.handleQuietProtocolPacket(packet);
+            }
+            catch (err) {
+                console.error(`QUIET(peer): Error while decoding/handling packet: ${err}`);
             }
         });
     }

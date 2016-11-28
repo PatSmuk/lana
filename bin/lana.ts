@@ -46,7 +46,7 @@ function handleCommand(...args: string[]) {
     }
     switch (command) {
         case "connect": {
-            if (args.length < 3) {
+            if (args.length < 4) {
                 console.log("Usage: connect <ip> <port> <name>");
                 return;
             }
@@ -91,10 +91,12 @@ function handleCommand(...args: string[]) {
                 console.log("Unknown peer number");
                 return;
             }
+
             let directory = args[2];
             if (!directory) {
                 directory = "/";
             }
+
             peer.queryDirectory(directory).then((contents) => {
                 for (const entry of contents) {
                     console.log(`${entry.name} - ${entry.type} (${entry.size})`);
@@ -144,7 +146,7 @@ function handleCommand(...args: string[]) {
         }
         default: {
             console.log(`Unknown command: ${command}`);
-            console.log("Options are: add, remove, peers, setname");
+            console.log("Options are: add, connect, download, exit, ls, peers, publish, setname, unpublish");
             break;
         }
     }

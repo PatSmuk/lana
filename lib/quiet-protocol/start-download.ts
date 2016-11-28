@@ -30,7 +30,7 @@ export function encodeStartDownloadPacket(token: number, filePath: string, start
 export function decodeStartDownloadPacket(packet: Buffer): StartDownloadPacket {
     assert(
         packet.length >= 4 + 4 + 2,
-        "Expected payload length to be at least 6 bytes, got ${packet.length}"
+        `decodeStartDownloadPacket: Expected payload length to be at least 6 bytes, got ${packet.length}`
     );
 
     let offset = 0;

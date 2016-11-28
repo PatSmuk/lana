@@ -26,7 +26,7 @@ export function encodeInitializePacket(): Buffer {
 export function decodeInitializePacket(packet: Buffer): InitializePacket {
     assert(
         packet.length === 2,
-        "Expected payload length to be 2, got ${packet.length}"
+        `decodeInitializePacket: Expected payload length to be 2, got ${packet.length}`
     );
 
     let offset = 0;

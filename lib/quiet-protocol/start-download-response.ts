@@ -35,7 +35,7 @@ export function encodeStartDownloadResponsePacket(token: number, responseCode: Q
 export function decodeStartDownloadResponsePacket(packet: Buffer): StartDownloadResponsePacket {
     assert(
         packet.length >= 4 + 2,
-        "Expected payload length to be at least 6 bytes, got ${packet.length}"
+        `decodeStartDownloadResponsePacket: Expected payload length to be at least 6 bytes, got ${packet.length}`
     );
 
     let offset = 0;
