@@ -60,7 +60,7 @@ export class Client extends EventEmitter {
     private root: FileOrDirectoryEntry[];
     private loudSocket: dgram.Socket;
     private quietServer: net.Server;
-    private peers: Set<string>;
+    private peers = new Set<string>();
 
     constructor(name: string) {
         super();
