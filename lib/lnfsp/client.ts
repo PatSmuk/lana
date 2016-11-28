@@ -57,16 +57,14 @@ const QUIET_PORT = 8086;
 
 export class Client extends EventEmitter {
     private name: string;
-    private port: number;
     private root: FileOrDirectoryEntry[];
     private loudSocket: dgram.Socket;
     private quietServer: net.Server;
     private peers: Set<string>;
 
-    constructor(port: number, name: string) {
+    constructor(name: string) {
         super();
         this.name = name;
-        this.port = port;
         this.root = [];
     }
 
