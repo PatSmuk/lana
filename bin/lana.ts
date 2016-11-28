@@ -21,6 +21,18 @@ rl.on('close', () => {
 
 const client = new LnfspClient(process.argv.length > 2 ? process.argv[2] : "Anonymous");
 const peers = new Map<number, Peer>();
+let nextPeerId = 0;
+
+client.on("newPeer", (peer: Peer) => {
+    const id = nextPeerId++;
+    console.log(`Found new peer: ${peer.getName()} (${id})`);
+    peers.set(id, peer);
+
+    peer.on("disconnect", () => {
+        console.log(`Lost peer: ${peer.getName()} (${id})`);
+        peers.delete(id);
+    });
+});
 
 function handleCommand(...args: string[]) {
     if (args.length < 1) {
