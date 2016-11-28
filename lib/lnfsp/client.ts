@@ -81,6 +81,9 @@ export class Client extends EventEmitter {
         this.loudSocket.on("error", (err) => {
             console.log(`Failed to bind dgram socket: ${err}`);
         });
+        this.loudSocket.on("listening", () => {
+            console.log(`LOUD: Listening on port ${LOUD_PORT}`);
+        });
 
         this.loudSocket.send(encodeQueryPacket(this.name), LOUD_PORT, LOUD_ADDRESS);
 
@@ -100,6 +103,9 @@ export class Client extends EventEmitter {
         });
         this.quietServer.on("error", (err) => {
             console.log(`Failed to bind tcp socket: ${err}`);
+        });
+        this.quietServer.on("listening", () => {
+            console.log(`QUIET: Listening on port ${QUIET_PORT}`);
         });
     }
 
