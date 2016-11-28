@@ -230,7 +230,8 @@ export class Client extends EventEmitter {
         }
         this.peers.add(ip);
         const peer = new Peer(ip, QUIET_PORT, name);
-        peer.on("error", () => {
+        peer.on("error", (err: any) => {
+            console.log(`Failed to connect to peer: ${err}`);
             this.peers.delete(ip);
         });
         peer.on("disconnect", () => {

@@ -47,12 +47,11 @@ export class Peer extends EventEmitter {
         this.socket.on("close", () => {
             this.emit("disconnect");
         });
-        this.socket.on("connect", () => {
+        this.socket.on("connect", async () => {
+            console.log(`Connected to peer at ${this.ip}`);
             this.socket.write(encodeInitializePacket());
-        });
 
-        const socketBuffer = createSocketBuffer(this.socket);
-        setImmediate(async () => {
+            const socketBuffer = createSocketBuffer(this.socket);
             for (;;) {
                 const packet = await decodeQuietProtocolPacket(socketBuffer);
                 if (!packet) {
