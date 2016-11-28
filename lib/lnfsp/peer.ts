@@ -93,6 +93,7 @@ export class Peer extends EventEmitter {
     }
 
     private handleQuietProtocolPacket(packet: QuietProtocolPacket): void {
+        console.log(`QUIET(peer): Got packet ${QuietProtocolOpcode[packet.opcode]}`);
         switch (packet.opcode) {
             case QuietProtocolOpcode.INITIALIZE_RESPONSE: {
                 const { responseCode } = packet as InitializeResponsePacket;

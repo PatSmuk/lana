@@ -78,6 +78,9 @@ export class Client extends EventEmitter {
         this.loudSocket.on("message", (message: Buffer, rinfo: dgram.RemoteInfo) => {
             this.handleLoudPacket(decodeLoudProtocolPacket(message), rinfo.address);
         });
+        this.loudSocket.on("error", (err) => {
+            console.log(`Failed to bind dgram socket: ${err}`);
+        });
 
         this.loudSocket.send(encodeQueryPacket(this.name), LOUD_PORT, LOUD_ADDRESS);
 
@@ -94,6 +97,9 @@ export class Client extends EventEmitter {
                 }
                 this.handleQuietPacket(packet, socket);
             }
+        });
+        this.quietServer.on("error", (err) => {
+            console.log(`Failed to bind tcp socket: ${err}`);
         });
     }
 
@@ -123,8 +129,10 @@ export class Client extends EventEmitter {
     }
 
     private publishInDirectory(fsPath: string, directoryContents: FileOrDirectoryEntry[]) {
+        console.log(`Publishing ${fsPath}`);
         fs.stat(fsPath, (err, stats) => {
             if (err) {
+                console.log(`Could not stat ${fsPath}: ${err}`);
                 return;
             }
             if (stats.isFile()) {
@@ -138,6 +146,7 @@ export class Client extends EventEmitter {
             else if (stats.isDirectory()) {
                 fs.readdir(fsPath, (err, contents) => {
                     if (err) {
+                        console.log(`Could not readdir ${fsPath}: ${err}`)
                         return;
                     }
                     const directoryEntry: DirectoryEntry = {
@@ -158,6 +167,7 @@ export class Client extends EventEmitter {
     unpublish(path: string): void {
         const result = this.findEntry(path);
         if (!result) {
+            console.log(`Couldn't find ${path}`);
             return;
         }
         const [_, directoryContents, i] = result!;
@@ -198,6 +208,7 @@ export class Client extends EventEmitter {
     }
 
     private handleLoudPacket(packet: LoudProtocolPacket, senderIp: string) {
+        console.log(`LOUD: Got packet ${LoudProtocolOpcode[packet.opcode]}`);
         switch (packet.opcode) {
             case LoudProtocolOpcode.QUERY: {
                 // When we receive a query, send a response and open a connection.
@@ -231,6 +242,7 @@ export class Client extends EventEmitter {
     }
 
     private handleQuietPacket(packet: QuietProtocolPacket, sender: net.Socket) {
+        console.log(`QUIET: Got packet ${QuietProtocolOpcode[packet.opcode]}`);
         switch (packet.opcode) {
             case QuietProtocolOpcode.INITIALIZE: {
                 const { versionMatched } = packet as InitializePacket;
