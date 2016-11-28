@@ -28,6 +28,14 @@ function handleCommand(...args: string[]) {
     }
     const command = args[0];
     switch (command) {
+        case "connect": {
+            if (args.length < 3) {
+                console.log("Usage: connect <ip> <name>");
+                return;
+            }
+            client.connectToPeer(args[1], args[2]);
+            break;
+        }
         case "publish": {
             if (args.length < 3) {
                 console.log("Usage: publish <fsPath> <virtualPath>");

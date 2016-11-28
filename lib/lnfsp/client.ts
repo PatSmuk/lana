@@ -224,7 +224,7 @@ export class Client extends EventEmitter {
         }
     }
 
-    private connectToPeer(ip: string, name: string) {
+    connectToPeer(ip: string, name: string) {
         if (this.peers.has(ip)) {
             return;
         }
