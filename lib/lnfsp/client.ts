@@ -71,6 +71,7 @@ export class Client extends EventEmitter {
     start(): void {
         // Open a UDP socket, bind to the predefined multicast port,
         //   add a message handler, and query for peers.
+        /*
         this.loudSocket = dgram.createSocket("udp4");
         this.loudSocket.bind(LOUD_PORT);
         this.loudSocket.addMembership(LOUD_ADDRESS);
@@ -86,10 +87,11 @@ export class Client extends EventEmitter {
         });
 
         this.loudSocket.send(encodeQueryPacket(this.name), LOUD_PORT, LOUD_ADDRESS);
+        */
 
         // Listen for TCP connections on `port` with a Quiet LNFSP handler.
         this.quietServer = net.createServer();
-        this.quietServer.listen(QUIET_PORT);
+        this.quietServer.listen(undefined as any);
 
         this.quietServer.on("connection", async (socket: net.Socket) => {
             const socketBuffer = createSocketBuffer(socket);
@@ -105,7 +107,7 @@ export class Client extends EventEmitter {
             console.log(`Failed to bind tcp socket: ${err}`);
         });
         this.quietServer.on("listening", () => {
-            console.log(`QUIET: Listening on port ${QUIET_PORT}`);
+            console.log(`QUIET: Listening on port ${this.quietServer.address().port}`);
         });
     }
 
@@ -219,23 +221,23 @@ export class Client extends EventEmitter {
             case LoudProtocolOpcode.QUERY: {
                 // When we receive a query, send a response and open a connection.
                 this.loudSocket.send(encodeLoudQueryResponsePacket(this.name), LOUD_PORT, LOUD_ADDRESS);
-                this.connectToPeer(senderIp, (packet as LoudQueryPacket).senderName);
+                this.connectToPeer(senderIp, QUIET_PORT, (packet as LoudQueryPacket).senderName);
                 break;
             }
             case LoudProtocolOpcode.QUERY_RESPONSE: {
                 // When we receive a response, connect if we aren't already.
-                this.connectToPeer(senderIp, (packet as QueryResponsePacket).senderName);
+                this.connectToPeer(senderIp, QUIET_PORT, (packet as QueryResponsePacket).senderName);
                 break;
             }
         }
     }
 
-    connectToPeer(ip: string, name: string) {
+    connectToPeer(ip: string, port: number, name: string) {
         if (this.peers.has(ip)) {
             return;
         }
         this.peers.add(ip);
-        const peer = new Peer(ip, QUIET_PORT, name);
+        const peer = new Peer(ip, port, name);
         peer.on("error", (err: any) => {
             console.log(`Failed to connect to peer: ${err}`);
             this.peers.delete(ip);

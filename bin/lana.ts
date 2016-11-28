@@ -47,10 +47,10 @@ function handleCommand(...args: string[]) {
     switch (command) {
         case "connect": {
             if (args.length < 3) {
-                console.log("Usage: connect <ip> <name>");
+                console.log("Usage: connect <ip> <port> <name>");
                 return;
             }
-            client.connectToPeer(args[1], args[2]);
+            client.connectToPeer(args[1], parseInt(args[2]), args[3]);
             break;
         }
         case "publish": {
@@ -71,7 +71,7 @@ function handleCommand(...args: string[]) {
         }
         case "peers": {
             for (const [id, peer] of peers) {
-                console.log(` ${id} - ${peer.getName()}`);
+                console.log(`  - ${id}: ${peer.getName()}`);
             }
             console.log(`${peers.size} peers`);
             break;

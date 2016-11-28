@@ -62,7 +62,7 @@ export function encodeQueryResponsePacket(token: number, responseCode: QuietProt
                 packet.writeUInt8(FileType.DIRECTORY, offset);      offset += 1;
             }
             else {
-                throw new Error("Expected type to be 'file' or 'directory', got ${entry.type}");
+                throw new Error(`Expected type to be 'file' or 'directory', got ${entry.type}`);
             }
 
             packet.writeUInt8(entry.name.length, offset);           offset += 1;
@@ -77,7 +77,7 @@ export function encodeQueryResponsePacket(token: number, responseCode: QuietProt
 export function decodeQueryResponsePacket(packet: Buffer): QueryResponsePacket {
     assert(
         packet.length >= 4 + 2,
-        "Expected payload length to be at least 6 bytes, got ${packet.length}"
+        `Expected payload length to be at least 6 bytes, got ${packet.length}`
     );
 
     let offset = 0;
@@ -98,7 +98,7 @@ export function decodeQueryResponsePacket(packet: Buffer): QueryResponsePacket {
     for (let i = 0; i < entryCount; i++) {
         assert(
             packet.length - offset >= 1 + 1 + 1 + 4,
-            "Expected at least 7 more bytes, only got ${packet.length - offset}"
+            `Expected at least 7 more bytes, only got ${packet.length - offset}`
         );
         const type = packet.readUInt8(offset);                      offset += 1;
         const nameLength = packet.readUInt8(offset);                offset += 1;
@@ -107,7 +107,7 @@ export function decodeQueryResponsePacket(packet: Buffer): QueryResponsePacket {
 
         assert(
             type === FileType.FILE || type === FileType.DIRECTORY,
-            "Expected type to be ${FileType.FILE} or ${FileType.DIRECTORY}, got ${type}"
+            `Expected type to be ${FileType.FILE} or ${FileType.DIRECTORY}, got ${type}`
         );
 
         contents.push({

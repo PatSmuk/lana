@@ -32,7 +32,7 @@ export function encodeQueryPacket(directoryPath: string, token: number): Buffer 
 export function decodeQueryPacket(packet: Buffer): QueryPacket {
     assert(
         packet.length === 4 + 2,
-        "Expected payload length to be 6 bytes, got ${packet.length}"
+        `Expected payload length to be 6 bytes, got ${packet.length}`
     );
 
     let offset = 0;
