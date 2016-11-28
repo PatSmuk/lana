@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "newLine": "LF",
+        "noImplicitAny": true,
+        "outDir": "build",
+        "sourceMap": true,
+        "target": "es2015",
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "strictNullChecks": true
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules/*"
+    ]
+}
