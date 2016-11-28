@@ -122,11 +122,13 @@ export class Client extends EventEmitter {
         // Find the array that holds the contents of the directory that
         //   we're trying to put this thing into.
         let directoryContents = this.root;
-        for (const step of virtualPath.split("/").slice(1)) {
+        const steps = virtualPath.split("/");
+        for (const step of steps.slice(1, steps.length - 1)) {
             for (const entry of directoryContents) {
                 let foundDirectory = false;
                 if (entry.name === step) {
                     if (entry.type !== "directory") {
+                        console.log(`${step} is not a directory`);
                         return;
                     }
                     foundDirectory = true;
@@ -134,16 +136,17 @@ export class Client extends EventEmitter {
                     break;
                 }
                 if (!foundDirectory) {
+                    console.log(`Couldn't find directory ${step}`);
                     return;
                 }
             }
         }
 
         // Now put this thing into the array.
-        this.publishInDirectory(fsPath, directoryContents);
+        this.publishInDirectory(fsPath, steps[steps.length - 1], directoryContents);
     }
 
-    private publishInDirectory(fsPath: string, directoryContents: FileOrDirectoryEntry[]) {
+    private publishInDirectory(fsPath: string, virtualName: string, directoryContents: FileOrDirectoryEntry[]) {
         console.log(`Publishing ${fsPath}`);
         fs.stat(fsPath, (err, stats) => {
             if (err) {
@@ -153,7 +156,7 @@ export class Client extends EventEmitter {
             if (stats.isFile()) {
                 directoryContents.push({
                     type: "file",
-                    name: path.parse(fsPath).base,
+                    name: virtualName,
                     size: stats.size,
                     fsPath
                 });
@@ -166,13 +169,13 @@ export class Client extends EventEmitter {
                     }
                     const directoryEntry: DirectoryEntry = {
                         type: "directory",
-                        name: path.parse(fsPath).base,
+                        name: virtualName,
                         size: contents.length,
                         contents: []
                     };
                     directoryContents.push(directoryEntry);
-                    for (const item in contents) {
-                        this.publishInDirectory(path.join(fsPath, item), directoryEntry.contents);
+                    for (const item of contents) {
+                        this.publishInDirectory(path.join(fsPath, item), item, directoryEntry.contents);
                     }
                 });
             }
@@ -197,11 +200,13 @@ export class Client extends EventEmitter {
         }
 
         const virtualPathSteps = path.split("/");
-        for (const step of virtualPathSteps.slice(1, -1)) {
+        for (const step of virtualPathSteps.slice(1, virtualPathSteps.length - 1)) {
+            console.log('STEP: ' + step);
             for (const entry of directoryContents) {
                 let foundDirectory = false;
                 if (entry.name === step) {
                     if (entry.type !== "directory") {
+                        console.log('NOT A DIRECTORY');
                         return null;
                     }
                     foundDirectory = true;
@@ -209,6 +214,7 @@ export class Client extends EventEmitter {
                     break;
                 }
                 if (!foundDirectory) {
+                    console.log('DIRECTORY NOT FOUND');
                     return null;
                 }
             }
@@ -220,6 +226,7 @@ export class Client extends EventEmitter {
                 return [directoryContents[i], directoryContents, i];
             }
         }
+        console.log('FILE NOT FOUND');
         return null;
     }
 
@@ -233,23 +240,23 @@ export class Client extends EventEmitter {
             case LoudProtocolOpcode.QUERY: {
                 // When we receive a query, send a response and open a connection.
                 this.loudSocket.send(encodeLoudQueryResponsePacket(this.name), LOUD_PORT, LOUD_ADDRESS);
-                this.connectToPeer(senderIp, QUIET_PORT, (packet as LoudQueryPacket).senderName);
+                this.connectToPeer(senderIp, QUIET_PORT);
                 break;
             }
             case LoudProtocolOpcode.QUERY_RESPONSE: {
                 // When we receive a response, connect if we aren't already.
-                this.connectToPeer(senderIp, QUIET_PORT, (packet as QueryResponsePacket).senderName);
+                this.connectToPeer(senderIp, QUIET_PORT);
                 break;
             }
         }
     }
 
-    connectToPeer(ip: string, port: number, name: string) {
+    connectToPeer(ip: string, port: number) {
         if (this.peers.has(ip)) {
             return;
         }
         this.peers.add(ip);
-        const peer = new Peer(ip, port, name);
+        const peer = new Peer(ip, port);
         peer.on("error", (err: any) => {
             console.log(`Failed to connect to peer: ${err}`);
             this.peers.delete(ip);
@@ -268,11 +275,11 @@ export class Client extends EventEmitter {
             case QuietProtocolOpcode.INITIALIZE: {
                 const { versionMatched } = packet as InitializePacket;
                 if (!versionMatched) {
-                    sender.write(encodeInitializeResponsePacket(QuietProtocolResponseCode.INITIALIZE_WRONG_VERSION));
+                    sender.write(encodeInitializeResponsePacket(QuietProtocolResponseCode.INITIALIZE_WRONG_VERSION, this.name));
                     sender.destroy();
                     return;
                 }
-                sender.write(encodeInitializeResponsePacket(QuietProtocolResponseCode.OK));
+                sender.write(encodeInitializeResponsePacket(QuietProtocolResponseCode.OK, this.name));
                 break;
             }
             case QuietProtocolOpcode.QUERY: {
@@ -321,7 +328,11 @@ export class Client extends EventEmitter {
                     server.close();
                 });
 
-                sender.write(encodeStartDownloadResponsePacket(token, QuietProtocolResponseCode.START_DOWNLOAD_FILE_NOT_FOUND, server.address().port));
+                server.on("listening", () => {
+                    console.log(`Download server up on port ${server.address().port}`);
+                    sender.write(encodeStartDownloadResponsePacket(token, QuietProtocolResponseCode.OK, server.address().port));
+                });
+
                 break;
             }
         }

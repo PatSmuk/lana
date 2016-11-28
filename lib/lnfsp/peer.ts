@@ -33,9 +33,8 @@ export class Peer extends EventEmitter {
     private pendingDownloads = new Map<number, [(downloadStream: NodeJS.ReadableStream) => void, (err: any) => void]>();
     private downloadSockets = new Map<number, net.Socket>();
 
-    constructor(ip: string, port: number, name: string) {
+    constructor(ip: string, port: number) {
         super();
-        this.name = name;
         this.ip = ip;
 
         this.socket = net.connect(port, ip);
@@ -100,13 +99,14 @@ export class Peer extends EventEmitter {
         console.log(`QUIET(peer): Got packet ${QuietProtocolOpcode[packet.opcode]}`);
         switch (packet.opcode) {
             case QuietProtocolOpcode.INITIALIZE_RESPONSE: {
-                const { responseCode } = packet as InitializeResponsePacket;
+                const { responseCode, name } = packet as InitializeResponsePacket;
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
                     console.error(`Failed to open connection to peer (error code ${responseCode})`);
                     return;
                 }
 
+                this.name = name;
                 this.connected = true;
                 this.emit("connect");
                 break;
@@ -120,8 +120,8 @@ export class Peer extends EventEmitter {
                 this.pendingQueries.delete(token);
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
-                    console.error(`Query failed (error code ${responseCode})`);
-                    reject(new Error(`Query failed (error code ${responseCode})`));
+                    console.error(`Query failed (error code ${QuietProtocolResponseCode[responseCode]})`);
+                    reject(new Error(`Query failed (error code ${QuietProtocolResponseCode[responseCode]})`));
                     return;
                 }
 
@@ -138,8 +138,8 @@ export class Peer extends EventEmitter {
                 this.pendingDownloads.delete(token);
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
-                    console.error(`Download failed (error code ${responseCode})`);
-                    reject(new Error(`Download failed (error code ${responseCode})`));
+                    console.error(`Download failed (error code ${QuietProtocolResponseCode[responseCode]})`);
+                    reject(new Error(`Download failed (error code ${QuietProtocolResponseCode[responseCode]})`));
                     return;
                 }
 

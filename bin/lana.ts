@@ -46,11 +46,11 @@ function handleCommand(...args: string[]) {
     }
     switch (command) {
         case "connect": {
-            if (args.length < 4) {
-                console.log("Usage: connect <ip> <port> <name>");
+            if (args.length < 3) {
+                console.log("Usage: connect <ip> <port>");
                 return;
             }
-            client.connectToPeer(args[1], parseInt(args[2]), args[3]);
+            client.connectToPeer(args[1], parseInt(args[2]));
             break;
         }
         case "publish": {
@@ -99,8 +99,9 @@ function handleCommand(...args: string[]) {
 
             peer.queryDirectory(directory).then((contents) => {
                 for (const entry of contents) {
-                    console.log(`${entry.name} - ${entry.type} (${entry.size})`);
+                    console.log(`  - ${entry.name} - ${entry.type} - ${entry.size}`);
                 }
+                console.log(`${contents.length} entries`);
             }).catch((err) => {
                 console.log(`Error querying directory: ${err}`);
             });
@@ -125,8 +126,12 @@ function handleCommand(...args: string[]) {
             const outputPath = args[3];
 
             peer.startDownload(args[2], 0).then((downloadStream) => {
+                console.log(`Download of ${args[2]} started`);
                 const outputStream = fs.createWriteStream(outputPath);
                 downloadStream.pipe(outputStream);
+                downloadStream.on("end", () => {
+                    console.log(`Download of ${args[2]} finished`);
+                });
             }).catch((err) => {
                 console.log(`Error downloading file: ${err}`);
             });
