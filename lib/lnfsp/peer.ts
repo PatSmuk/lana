@@ -47,7 +47,7 @@ export class Peer extends EventEmitter {
             this.emit("disconnect");
         });
         this.socket.on("connect", async () => {
-            console.log(`Connected to peer at ${this.ip}`);
+            //console.log(`Connected to peer at ${this.ip}`);
             this.socket.write(encodeInitializePacket());
 
             const socketBuffer = createSocketBuffer(this.socket);
@@ -62,8 +62,13 @@ export class Peer extends EventEmitter {
             }
             catch (err) {
                 console.error(`QUIET(peer): Error while decoding/handling packet: ${err}`);
+                this.socket.destroy();
             }
         });
+    }
+
+    disconnect(): void {
+        this.socket.end();
     }
 
     queryDirectory(path: string): Promise<DirectoryEntry[]> {
@@ -96,13 +101,13 @@ export class Peer extends EventEmitter {
     }
 
     private handleQuietProtocolPacket(packet: QuietProtocolPacket): void {
-        console.log(`QUIET(peer): Got packet ${QuietProtocolOpcode[packet.opcode]}`);
+        //console.log(`QUIET(peer): Got packet ${QuietProtocolOpcode[packet.opcode]}`);
         switch (packet.opcode) {
             case QuietProtocolOpcode.INITIALIZE_RESPONSE: {
                 const { responseCode, name } = packet as InitializeResponsePacket;
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
-                    console.error(`Failed to open connection to peer (error code ${responseCode})`);
+                    //console.error(`Failed to open connection to peer (error code ${responseCode})`);
                     return;
                 }
 
@@ -120,7 +125,7 @@ export class Peer extends EventEmitter {
                 this.pendingQueries.delete(token);
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
-                    console.error(`Query failed (error code ${QuietProtocolResponseCode[responseCode]})`);
+                    //console.error(`Query failed (error code ${QuietProtocolResponseCode[responseCode]})`);
                     reject(new Error(`Query failed (error code ${QuietProtocolResponseCode[responseCode]})`));
                     return;
                 }
@@ -138,7 +143,7 @@ export class Peer extends EventEmitter {
                 this.pendingDownloads.delete(token);
 
                 if (responseCode !== QuietProtocolResponseCode.OK) {
-                    console.error(`Download failed (error code ${QuietProtocolResponseCode[responseCode]})`);
+                    //console.error(`Download failed (error code ${QuietProtocolResponseCode[responseCode]})`);
                     reject(new Error(`Download failed (error code ${QuietProtocolResponseCode[responseCode]})`));
                     return;
                 }
@@ -163,7 +168,7 @@ export class Peer extends EventEmitter {
                 break;
             }
             default: {
-                console.error("Unrecognized opcode: ${packet.opcode}");
+                //console.error("Unrecognized opcode: ${packet.opcode}");
                 break;
             }
         }
