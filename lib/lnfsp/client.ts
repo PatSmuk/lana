@@ -202,21 +202,23 @@ export class Client extends EventEmitter {
         const virtualPathSteps = path.split("/");
         for (const step of virtualPathSteps.slice(1, virtualPathSteps.length - 1)) {
             //console.log('STEP: ' + step);
+            let directoryFound = false;
             for (const entry of directoryContents) {
-                let foundDirectory = false;
+                //console.log(`  ${entry.name}: ${entry.type}`);
                 if (entry.name === step) {
                     if (entry.type !== "directory") {
                         //console.log('NOT A DIRECTORY');
                         return null;
                     }
-                    foundDirectory = true;
+                    directoryFound = true;
+                    //console.log(`Found ${step} directory`);
                     directoryContents = entry.contents;
                     break;
                 }
-                if (!foundDirectory) {
-                    //console.log('DIRECTORY NOT FOUND');
-                    return null;
-                }
+            }
+            if (!directoryFound) {
+                //console.log('DIRECTORY NOT FOUND');
+                return null;
             }
         }
 
@@ -226,7 +228,7 @@ export class Client extends EventEmitter {
                 return [directoryContents[i], directoryContents, i];
             }
         }
-        //console.log('FILE NOT FOUND');
+        console.log('FILE NOT FOUND');
         return null;
     }
 
